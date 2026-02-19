@@ -8,3 +8,11 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: DATABASE_NAME
+        value: phone_sales.db
+    healthCheckPath: /health
+    autoDeploy: true

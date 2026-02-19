@@ -785,13 +785,31 @@ async def seller_handler(message: types.Message, state: FSMContext):
     else:
         await message.answer("👤 Связаться с продавцом: +998880445550")
 
-# Asosiy funktsiya
 async def main():
-    logger.info("Bot started")
+    logger.info("🚀 Bot started")
     await notify_admin("🚀 Bot ishga tushdi!")
     
-    await dp.start_polling(bot)
+    try:
+        # Start polling
+        await dp.start_polling(bot)
+    except Exception as e:
+        logger.error(f"❌ Polling error: {e}")
+        await asyncio.sleep(5)
+        # Qayta urinish
+        await main()
 
 if __name__ == '__main__':
-    keep_alive()
-    asyncio.run(main())
+    # Keep alive serverini ishga tushirish
+    from keep_alive import start_keep_alive
+    start_keep_alive()
+    
+    # Botni ishga tushirish
+    while True:
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            logger.info("🛑 Bot stopped by user")
+            break
+        except Exception as e:
+            logger.error(f"❌ Fatal error: {e}")
+            time.sleep(10)  # 10 soniya kutib qayta ishga tushirish
