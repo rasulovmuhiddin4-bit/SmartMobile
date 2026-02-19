@@ -37,39 +37,3 @@ def keep_alive():
     ping_thread.daemon = True
     ping_thread.start()
     logging.info("⏲ Self-ping thread started")
-    
-def start_keep_alive():
-    """Botni doimiy ishlashini ta'minlash"""
-    # Flask serverni ishga tushirish
-    t = Thread(target=run)
-    t.daemon = True
-    t.start()
-    logging.info("🌐 Web server started on port 8080")
-    
-    # Self-ping funksiyasi
-    def ping_self():
-        url = "https://smartmobile-bot.onrender.com"  # Render URL
-        while True:
-            try:
-                requests.get(url, timeout=10)
-                logging.info("🏓 Self-ping successful")
-                time.sleep(240)  # 4 daqiqa
-            except Exception as e:
-                logging.error(f"❌ Self-ping error: {e}")
-                time.sleep(60)
-    
-    # Ping thread
-    ping_thread = Thread(target=ping_self)
-    ping_thread.daemon = True
-    ping_thread.start()
-    logging.info("⏲ Self-ping thread started")
-    
-    # Monitor thread
-    def monitor():
-        while True:
-            logging.info(f"📊 Bot is running... Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-            time.sleep(600)  # 10 daqiqa
-    
-    monitor_thread = Thread(target=monitor)
-    monitor_thread.daemon = True
-    monitor_thread.start()    
