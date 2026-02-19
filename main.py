@@ -16,6 +16,17 @@ from texts import TEXTS
 from keep_alive import keep_alive
 from admin import setup_admin_handlers
 
+import sys
+import os
+
+# Debug uchun environment variable'larni tekshirish
+print("🔍 Checking environment variables...")
+print(f"BOT_TOKEN exists: {'Yes' if os.getenv('BOT_TOKEN') else 'No'}")
+print(f"ADMIN_IDS: {os.getenv('ADMIN_IDS')}")
+print(f"PYTHON_VERSION: {os.getenv('PYTHON_VERSION')}")
+print(f"DATABASE_NAME: {os.getenv('DATABASE_NAME')}")
+sys.stdout.flush()  # Loglarni darhol chiqarish
+
 load_dotenv()
 
 # Logging sozlamalari
@@ -33,6 +44,31 @@ db = Database(DATABASE_NAME)
 
 # Admin handlerni ulash
 setup_admin_handlers(dp, bot, db, ADMIN_IDS)
+
+# ADMIN_IDS ni xavfsiz o'qish
+ADMIN_IDS = []
+admin_ids_str = os.getenv('ADMIN_IDS')
+if admin_ids_str:
+    try:
+        # Vergul bilan ajratilgan ID larni o'qish
+        for id_str in admin_ids_str.split(','):
+            id_str = id_str.strip()
+            if id_str:
+                ADMIN_IDS.append(int(id_str))
+        print(f"✅ Loaded ADMIN_IDS: {ADMIN_IDS}")
+    except ValueError as e:
+        print(f"❌ Error parsing ADMIN_IDS: {e}")
+        print(f"   Raw value: '{admin_ids_str}'")
+else:
+    print("⚠️ ADMIN_IDS environment variable not set!")
+
+# Bot tokenini tekshirish
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+if not BOT_TOKEN:
+    print("❌ BOT_TOKEN environment variable not set!")
+    sys.exit(1)
+else:
+    print(f"✅ BOT_TOKEN loaded (length: {len(BOT_TOKEN)})")
 
 # Admin xabar yuborish
 async def notify_admin(message: str):
