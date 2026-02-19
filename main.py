@@ -1,12 +1,13 @@
 import asyncio
 import logging
+import sys
+import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-import os
 from dotenv import load_dotenv
 
 from database import Database
@@ -16,8 +17,12 @@ from texts import TEXTS
 from keep_alive import keep_alive
 from admin import setup_admin_handlers
 
-import sys
-import os
+# .env faylidan o'qish
+load_dotenv()
+
+# Logging sozlamalari
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Debug uchun environment variable'larni tekshirish
 print("🔍 Checking environment variables...")
@@ -25,25 +30,15 @@ print(f"BOT_TOKEN exists: {'Yes' if os.getenv('BOT_TOKEN') else 'No'}")
 print(f"ADMIN_IDS: {os.getenv('ADMIN_IDS')}")
 print(f"PYTHON_VERSION: {os.getenv('PYTHON_VERSION')}")
 print(f"DATABASE_NAME: {os.getenv('DATABASE_NAME')}")
-sys.stdout.flush()  # Loglarni darhol chiqarish
+sys.stdout.flush()
 
-load_dotenv()
-
-# Logging sozlamalari
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# Bot sozlamalari
+# Bot tokenini tekshirish
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-ADMIN_IDS = list(map(int, os.getenv('ADMIN_IDS', '').split(',')))
-DATABASE_NAME = os.getenv('DATABASE_NAME', 'phone_sales.db')
-
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-db = Database(DATABASE_NAME)
-
-# Admin handlerni ulash
-setup_admin_handlers(dp, bot, db, ADMIN_IDS)
+if not BOT_TOKEN:
+    print("❌ BOT_TOKEN environment variable not set!")
+    sys.exit(1)
+else:
+    print(f"✅ BOT_TOKEN loaded (length: {len(BOT_TOKEN)})")
 
 # ADMIN_IDS ni xavfsiz o'qish
 ADMIN_IDS = []
@@ -59,16 +54,22 @@ if admin_ids_str:
     except ValueError as e:
         print(f"❌ Error parsing ADMIN_IDS: {e}")
         print(f"   Raw value: '{admin_ids_str}'")
+        sys.exit(1)
 else:
-    print("⚠️ ADMIN_IDS environment variable not set!")
+    print("⚠️ ADMIN_IDS environment variable not set! Using empty list.")
+    ADMIN_IDS = []
 
-# Bot tokenini tekshirish
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-if not BOT_TOKEN:
-    print("❌ BOT_TOKEN environment variable not set!")
-    sys.exit(1)
-else:
-    print(f"✅ BOT_TOKEN loaded (length: {len(BOT_TOKEN)})")
+# Database name
+DATABASE_NAME = os.getenv('DATABASE_NAME', 'phone_sales.db')
+print(f"✅ DATABASE_NAME: {DATABASE_NAME}")
+
+# Bot va dispatcher yaratish
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+db = Database(DATABASE_NAME)
+
+# Admin handlerni ulash (ADMIN_IDS endi to'g'ri)
+setup_admin_handlers(dp, bot, db, ADMIN_IDS)
 
 # Admin xabar yuborish
 async def notify_admin(message: str):
