@@ -64,20 +64,37 @@ DATABASE_NAME = os.getenv('DATABASE_NAME', 'phone_sales.db')
 print(f"✅ DATABASE_NAME: {DATABASE_NAME}")
 
 # Bot va dispatcher yaratish
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-db = Database(DATABASE_NAME)
+try:
+    bot = Bot(token=BOT_TOKEN)
+    dp = Dispatcher()
+    print("✅ Bot and Dispatcher created successfully")
+except Exception as e:
+    print(f"❌ Error creating bot: {e}")
+    sys.exit(1)
 
-# Admin handlerni ulash (ADMIN_IDS endi to'g'ri)
-setup_admin_handlers(dp, bot, db, ADMIN_IDS)
+# Database ulanishi
+try:
+    db = Database(DATABASE_NAME)
+    print("✅ Database connected successfully")
+except Exception as e:
+    print(f"❌ Error connecting to database: {e}")
+    sys.exit(1)
+
+# Admin handlerni ulash
+try:
+    setup_admin_handlers(dp, bot, db, ADMIN_IDS)
+    print("✅ Admin handlers setup successfully")
+except Exception as e:
+    print(f"❌ Error setting up admin handlers: {e}")
+    sys.exit(1)
 
 # Admin xabar yuborish
 async def notify_admin(message: str):
     for admin_id in ADMIN_IDS:
         try:
             await bot.send_message(admin_id, message)
-        except:
-            pass
+        except Exception as e:
+            logger.error(f"Error notifying admin {admin_id}: {e}")
 
 # Foydalanuvchini tekshirish
 async def check_user(message: types.Message):
@@ -831,22 +848,21 @@ async def main():
         await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"❌ Polling error: {e}")
-        await asyncio.sleep(5)
-        # Qayta urinish
-        await main()
+        raise
 
 if __name__ == '__main__':
     # Keep alive serverini ishga tushirish
-    from keep_alive import start_keep_alive
-    start_keep_alive()
+    try:
+        keep_alive()
+        print("✅ Keep-alive server started")
+    except Exception as e:
+        print(f"❌ Error starting keep-alive server: {e}")
     
     # Botni ishga tushirish
-    while True:
-        try:
-            asyncio.run(main())
-        except KeyboardInterrupt:
-            logger.info("🛑 Bot stopped by user")
-            break
-        except Exception as e:
-            logger.error(f"❌ Fatal error: {e}")
-            time.sleep(10)  # 10 soniya kutib qayta ishga tushirish
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("🛑 Bot stopped by user")
+    except Exception as e:
+        print(f"❌ Fatal error: {e}")
+        sys.exit(1)
