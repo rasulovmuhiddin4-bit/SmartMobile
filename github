@@ -1,0 +1,4 @@
+# Yangi o'zgarishlarni qo'shish
+git add .
+git commit -m "Yangi o'zgarishlar tavsifi"
+git push
